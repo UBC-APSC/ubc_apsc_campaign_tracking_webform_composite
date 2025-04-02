@@ -1,0 +1,18 @@
+{
+    "name": "apsc-web/ubc_apsc_campaign_tracking_webform_composite",
+    "description": "Provides a composite set of hidden fields as a Webform element. UTM Campaign variables are recorded upon submission.",
+    "type": "drupal-module",
+    "require": {
+    },
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "apsc-web",
+            "email": "web@apsc.ubc.ca",
+            "homepage": "https://apsc.ubc.ca"
+        }
+    ],
+    "support": {
+		"issues": "https://apsc.ubc.ca/web"
+	}
+}

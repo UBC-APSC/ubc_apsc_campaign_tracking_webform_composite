@@ -1,0 +1,136 @@
+<?php
+
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Render\Element\RenderElement;
+
+/**
+ * Implements hook_page_attachments().
+ * Attach library to capture tracking variables to cookie for anonymous users
+ */
+function ubc_apsc_campaign_tracking_webform_composite_page_attachments(array &$attachments) {
+	
+	// Check if the current user is authenticated.
+	$current_user = \Drupal::currentUser();
+	if ($current_user->isAuthenticated())
+	  return;
+	  
+	// Check if the current path is an admin page.
+	$current_path = \Drupal::service('path.current')->getPath();
+	$admin_paths = ['/admin', '/user', '/node/add', '/node/*/edit'];
+
+	// Use in_array to check if the current path is an admin path.
+	if (in_array($current_path, $admin_paths))
+	  return;
+	
+	// List of variables we want to capture. Attach the capture UTM JavaScript to every page.
+	$attachments['#attached']['drupalSettings']['ubc_apsc_campaign_tracking_webform_composite']['vars'] = ['utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_campaign', 'fbclid', 'gclid', 'msclid', 'document_referrer'];
+	$attachments['#attached']['library'][] = 'ubc_apsc_campaign_tracking_webform_composite/ubc_apsc_campaign_tracking_capture';
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function ubc_apsc_campaign_tracking_webform_composite_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+	
+	// Check if the current user is authenticated.
+	$current_user = \Drupal::currentUser();
+	if ($current_user->isAuthenticated())
+	  return;
+	  
+	// Check if the current path is an admin page.
+	$current_path = \Drupal::service('path.current')->getPath();
+	$admin_paths = ['/admin', '/user', '/node/add', '/node/*/edit'];
+
+	// Use in_array to check if the current path is an admin path.
+	if (in_array($current_path, $admin_paths))
+	  return;
+	
+	// Check one of the form elements is tracking the campaign
+	$utm_tracking_present = FALSE;
+	
+	if(isset($form['elements']) && is_array($form['elements'])) {
+		foreach($form['elements'] as $key => $element) {
+			if($element['#webform_plugin_id'] == 'ubc_apsc_campaign_tracking_webform_composite') {
+				$utm_tracking_present = TRUE;
+			}
+		}
+	}
+
+	// Check if the form ID contains 'webform_' and this form is capturing UTM variables.
+	if(strpos($form_id, 'webform_')!==false && $utm_tracking_present) {
+		$form['#attached']['drupalSettings']['ubc_apsc_campaign_tracking_webform_composite']['act_form'] = $form['#id'];
+		$form['#attached']['library'][] = 'ubc_apsc_campaign_tracking_webform_composite/ubc_apsc_campaign_tracking_process';
+	}
+}
+
+/**
+ * Implements hook_theme().
+ */
+function ubc_apsc_campaign_tracking_webform_composite_theme() {
+	/* Override base webform templates with ones from the module to avoid output of campaign variables to end users */
+	return [
+	  'ubc_apsc_campaign_tracking_webform_composite' => [
+		'render element' => 'element',
+	  ],
+	  'webform_element_base_html__ubc_apsc_campaign_tracking_webform_composite' => [
+		'variables' => ['element' => []],
+	  ],
+	];
+}
+  
+/**
+ * Implements hook_preprocess_HOOK() for webform_element_base_html.
+ */
+function ubc_apsc_campaign_tracking_webform_composite_preprocess_webform_element_base_html(&$variables) {
+	// Add your custom logic here if needed.
+	if ($variables['element']['#webform_key'] == 'ubc_apsc_campaign_tracking_webform_composite') {
+		$variables['theme_hook_suggestions'][] = 'webform_element_base_html__ubc_apsc_campaign_tracking_webform_composite';
+	}
+}
+
+/**
+ * Prepares variables for webform composite templates.
+ *
+ * Default template: webform-example-composite.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - element: An associative array containing the properties of the element.
+ */
+function template_preprocess_ubc_apsc_campaign_tracking_webform_composite(array &$variables) {
+  // Here you can get the composite element and alter it.
+  _template_preprocess_ubc_apsc_campaign_tracking_webform_composite($variables);
+}
+
+
+/**
+ * Prepares variables for webform composite templates.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - element: An associative array containing the properties of the element.
+ */
+function _template_preprocess_ubc_apsc_campaign_tracking_webform_composite(array &$variables) {
+  $element = $variables['element'];
+  // Copy all accessible element children to content.
+  foreach (Element::children($element) as $key) {
+    if (!isset($element[$key]['#access']) || $element[$key]['#access']) {
+      $variables['content'][$key] = $element[$key];
+    }
+  }
+  
+  // Set flexbox variable used for multi column element layout.
+  $variables['flexbox'] = $element['#flexbox'] ?? FALSE;
+}
+
+/**
+ * Implements hook_update_projects_alter(&$projects).
+ * Alter the list of projects before fetching data and comparing versions.
+ * Hide projects from the list to avoid "No available releases found" warnings on the available updates report
+ */
+function ubc_apsc_campaign_tracking_webform_composite_update_projects_alter(&$projects) {
+	unset($projects['ubc_apsc_campaign_tracking_webform_composite']);
+  }

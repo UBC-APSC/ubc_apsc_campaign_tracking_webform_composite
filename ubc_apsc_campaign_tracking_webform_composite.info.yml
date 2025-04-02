@@ -1,0 +1,7 @@
+name: 'UBC APSC UTM Campaigns tracking Webform Composite'
+type: module
+description: 'Provides a composite set of hidden fields as a Webform element. UTM Campaign variables are recorded upon submission.'
+package: UBC APSC
+core_version_requirement: ^10 || ^11
+dependencies:
+  - 'webform:webform'

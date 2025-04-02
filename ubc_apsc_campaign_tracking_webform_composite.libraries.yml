@@ -1,0 +1,21 @@
+ubc_apsc_campaign_tracking_styles:
+  version: 1.x
+  css:
+    theme:
+      css/ubc_apsc_campaign_tracking.css: {}
+  dependencies:
+    - webform/webform.composite
+
+ubc_apsc_campaign_tracking_capture:
+  version: 1.x
+  js:
+    js/ubc_apsc_campaign_tracking_capture.js : {}
+  dependencies:
+    - core/drupal
+
+ubc_apsc_campaign_tracking_process:
+  version: 1.x
+  js:
+    js/ubc_apsc_campaign_tracking_process.js : {}
+  dependencies:
+    - core/drupal
