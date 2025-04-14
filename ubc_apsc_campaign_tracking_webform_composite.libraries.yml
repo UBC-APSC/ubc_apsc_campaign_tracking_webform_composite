@@ -9,7 +9,7 @@ ubc_apsc_campaign_tracking_styles:
 ubc_apsc_campaign_tracking_capture:
   version: 1.x
   js:
-    js/ubc_apsc_campaign_tracking_capture.js : {}
+    js/ubc_apsc_campaign_tracking_capture.js : { attributes: { defer: true, async: true} }
   dependencies:
     - core/drupal
 
