@@ -4,39 +4,47 @@
 
       const utmParams = drupalSettings.ubc_apsc_campaign_tracking_webform_composite.vars;
 
-      // Function to get cookie value
-      function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
+      // Function to retrieve the local storage variable value
+      function getLocalStorageItem(name) {
+        const item = localStorage.getItem(name);
+        if (!item) return null;
+
+        return JSON.parse(item);
       }
 
-      // clear cookies
-      function clearCampaignTrackingCookies() {
+      // Function to clear cookies
+      function clearLocalStorageItem() {
         utmParams.forEach(param => {
-          document.cookie = `${'act_' + param}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          localStorage.removeItem('act_' + param);
         });
       };
 
-      // Populate hidden fields with UTM data when the form is loaded
+      // Populate hidden fields with UTM data when the form is loaded if marketing consent available
       $(function () {
-        const parentElement = document.querySelector('.js-form-ubc-apsc-campaign-tracking-webform-composite');
-        if (parentElement) {
-          utmParams.forEach(param => {
-            const inputElements = parentElement.querySelectorAll(`input[name*="[${'act_' + param}]"]`);
-            inputElements.forEach(inputElement => {
-              if (inputElement) {
-                const cookieValue = getCookie('act_' + param);
-                if (cookieValue !== undefined)
-                  inputElement.value = cookieValue;
-              }
+        var cookieConsent = window.Cookiebot.consent;
+        if (typeof cookieConsent !== 'undefined' && !cookieConsent.marketing) {
+            clearLocalStorageItem();
+        }
+        else {
+          const parentElement = document.querySelector('.js-form-ubc-apsc-campaign-tracking-webform-composite');
+          if (parentElement) {
+            utmParams.forEach(param => {
+              const storageKey = 'act_' + param;
+              const inputElements = parentElement.querySelectorAll(`input[name*="[${storageKey}]"]`);
+              inputElements.forEach(inputElement => {
+                if (inputElement) {
+                  const localStorageValue = getLocalStorageItem(storageKey);
+                  if (localStorageValue !== undefined)
+                    inputElement.value = localStorageValue;
+                }
+              });
             });
-          });
+          }
         }
 
         $('#' + drupalSettings.ubc_apsc_campaign_tracking_webform_composite.act_form).submit(function (e) {
-          // Clear cookies when the form is submitted
-          clearCampaignTrackingCookies();
+          // Clear local storage when the form is submitted
+          clearLocalStorageItem();
         });
       });
     }
