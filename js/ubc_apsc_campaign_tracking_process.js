@@ -21,10 +21,9 @@
 
       // Populate hidden fields with UTM data when the form is loaded if marketing consent available
       $(function () {
-        var cookieConsent = window.Cookiebot.consent;
-        if (typeof cookieConsent !== 'undefined' && !cookieConsent.marketing) {
-            clearLocalStorageItem();
-        }
+        if (typeof window.Cookiebot !== 'undefined' && typeof window.Cookiebot.consent !== 'undefined' && !window.Cookiebot.consent.marketing) {
+			clearLocalStorageItem();
+		}
         else {
           const parentElement = document.querySelector('.js-form-ubc-apsc-campaign-tracking-webform-composite');
           if (parentElement) {
